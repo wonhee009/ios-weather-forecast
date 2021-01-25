@@ -8,15 +8,14 @@ import UIKit
 import CoreLocation
 
 class ViewController: UIViewController {
-    private let appDelegate = UIApplication.shared.delegate as? AppDelegate
     private var currentWeather: CurrentWeather? = nil {
         didSet {
-            self.updateTable()
+            self.updateTableAsync()
         }
     }
     private var fiveDaysForecast: FiveDaysForecast? = nil {
         didSet {
-            self.updateTable()
+            self.updateTableAsync()
         }
     }
     
@@ -78,7 +77,7 @@ class ViewController: UIViewController {
         }
     }
     
-    private func updateTable() {
+    private func updateTableAsync() {
         DispatchQueue.main.async {
             self.weatherTable.reloadData()
         }
@@ -88,9 +87,12 @@ class ViewController: UIViewController {
 extension ViewController: CLLocationManagerDelegate {
     // MARK: - setUp LocationManager & checkPermission
     private func setUpLocationManager() {
-        appDelegate?.locationManager.delegate = self
-        appDelegate?.locationManager.requestWhenInUseAuthorization()
-        appDelegate?.locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            return
+        }
+        appDelegate.locationManager.delegate = self
+        appDelegate.locationManager.requestWhenInUseAuthorization()
+        appDelegate.locationManager.desiredAccuracy = kCLLocationAccuracyBest
     }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
@@ -131,12 +133,16 @@ extension ViewController: CLLocationManagerDelegate {
     
     // MARK: - tracking user location
     private func searchCoordinate() {
-        appDelegate?.locationManager.requestLocation()
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            return
+        }
+        appDelegate.locationManager.requestLocation()
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         debugPrint("🔥")
-        guard let coordinate = appDelegate?.locationManager.location?.coordinate else {
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate,
+              let coordinate = appDelegate.locationManager.location?.coordinate else {
             return self.showErrorAlert(WeatherForcastError.getCoordinate, handler: nil)
         }
         setUpData(coordinate: Coordinate(latitude: coordinate.latitude, longitude: coordinate.longitude))

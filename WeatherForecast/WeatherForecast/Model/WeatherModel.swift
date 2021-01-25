@@ -27,8 +27,7 @@ class WeatherModel {
             case .success(let data):
                 self.item = data
                 self.coordinateToAddressString(data?.coordinate) { placemark in
-                    guard let city = placemark?.administrativeArea,
-                          let road = placemark?.thoroughfare else {
+                    guard let city = placemark?.administrativeArea, let road = placemark?.thoroughfare else {
                         self.address = nil
                         return callback(data)
                     }
@@ -41,19 +40,18 @@ class WeatherModel {
     
     func coordinateToAddressString(_ coordinate: Coordinate?, completionHandler: @escaping (CLPlacemark?)
                     -> Void ) {
-        if let currentCoordinate = coordinate {
-            let geocoder = CLGeocoder()
-            let location = CLLocation(latitude: currentCoordinate.latitude, longitude: currentCoordinate.longitude)
-            geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
-                if error == nil {
-                    let firstLoaction = placemarks?[0]
-                    completionHandler(firstLoaction)
-                } else {
-                    completionHandler(nil)
-                }
+        guard let currentCoordinate = coordinate else {
+            return completionHandler(nil)
+        }
+        let geocoder = CLGeocoder()
+        let location = CLLocation(latitude: currentCoordinate.latitude, longitude: currentCoordinate.longitude)
+        geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
+            if error == nil {
+                let firstLocation = placemarks?[0]
+                completionHandler(firstLocation)
+            } else {
+                completionHandler(nil)
             }
-        } else {
-            completionHandler(nil)
         }
     }
 }
